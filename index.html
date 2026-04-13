@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -37,7 +37,9 @@
           <option value="suncare">Suncare</option>
           <option value="fragrance">Fragrance</option>
         </select>
-        <label for="productSearch" class="visually-hidden">Search products</label>
+        <label for="productSearch" class="visually-hidden"
+          >Search products</label
+        >
         <input
           id="productSearch"
           type="search"
@@ -93,6 +95,32 @@
           <a href="#">Contact</a>
         </nav>
       </footer>
+    </div>
+
+    <div id="descriptionModal" class="description-modal" aria-hidden="true">
+      <div class="description-modal__backdrop" data-close-modal></div>
+      <div
+        class="description-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="descriptionModalTitle"
+      >
+        <button
+          type="button"
+          class="description-modal__close"
+          aria-label="Close description"
+          data-close-modal
+        >
+          &times;
+        </button>
+        <p class="description-modal__brand" id="descriptionModalBrand"></p>
+        <h3 id="descriptionModalTitle"></h3>
+        <p
+          class="description-modal__category"
+          id="descriptionModalCategory"
+        ></p>
+        <p class="description-modal__text" id="descriptionModalText"></p>
+      </div>
     </div>
 
     <!-- secrets.js can be removed when using Cloudflare Workers for API requests -->

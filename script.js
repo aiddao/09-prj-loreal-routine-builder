@@ -4,6 +4,13 @@ const productSearch = document.getElementById("productSearch");
 const productsContainer = document.getElementById("productsContainer");
 const selectedProductsList = document.getElementById("selectedProductsList");
 const clearSelectionsBtn = document.getElementById("clearSelections");
+const descriptionModal = document.getElementById("descriptionModal");
+const descriptionModalBrand = document.getElementById("descriptionModalBrand");
+const descriptionModalTitle = document.getElementById("descriptionModalTitle");
+const descriptionModalCategory = document.getElementById(
+  "descriptionModalCategory",
+);
+const descriptionModalText = document.getElementById("descriptionModalText");
 const chatForm = document.getElementById("chatForm");
 const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
@@ -19,6 +26,7 @@ let searchQuery = "";
 let conversationHistory = [];
 let hasGeneratedRoutine = false;
 let languageObserver = null;
+let lastFocusedElement = null;
 
 /* Show initial placeholder until user selects a category */
 productsContainer.innerHTML = `
@@ -195,15 +203,55 @@ function displayProducts(products) {
           <div class="product-info">
             <h3>${escapeHtml(product.name)}</h3>
             <p>${escapeHtml(product.brand)}</p>
-            <details class="product-description">
-              <summary>View Description</summary>
-              <p>${escapeHtml(product.description)}</p>
-            </details>
+            <button
+              type="button"
+              class="product-description-btn"
+              data-description-id="${product.id}"
+              aria-label="View description for ${escapeHtml(product.name)}"
+            >
+              View Description
+            </button>
           </div>
         </article>
       `;
     })
     .join("");
+}
+
+/* Show the selected product description in a modal */
+function openDescriptionModal(productId) {
+  const product = allProducts.find((item) => item.id === productId);
+
+  if (!product || !descriptionModal) {
+    return;
+  }
+
+  lastFocusedElement = document.activeElement;
+  descriptionModalBrand.innerText = product.brand;
+  descriptionModalTitle.innerText = product.name;
+  descriptionModalCategory.innerText = product.category;
+  descriptionModalText.innerText = product.description;
+  descriptionModal.setAttribute("aria-hidden", "false");
+  descriptionModal.classList.add("is-open");
+
+  const closeButton = descriptionModal.querySelector(
+    ".description-modal__close",
+  );
+  closeButton?.focus();
+}
+
+/* Close the description modal */
+function closeDescriptionModal() {
+  if (!descriptionModal) {
+    return;
+  }
+
+  descriptionModal.setAttribute("aria-hidden", "true");
+  descriptionModal.classList.remove("is-open");
+
+  if (lastFocusedElement instanceof HTMLElement) {
+    lastFocusedElement.focus();
+  }
 }
 
 /* Keep selected products section in sync with selected IDs */
@@ -358,9 +406,10 @@ productSearch.addEventListener("input", (e) => {
 
 /* Let user select/unselect products by clicking the card */
 productsContainer.addEventListener("click", (event) => {
-  const clickedDescription =
-    event.target.closest("summary") || event.target.closest("p");
-  if (clickedDescription && event.target.closest(".product-description")) {
+  const descriptionButton = event.target.closest(".product-description-btn");
+  if (descriptionButton) {
+    const productId = Number(descriptionButton.dataset.descriptionId);
+    openDescriptionModal(productId);
     return;
   }
 
@@ -379,6 +428,14 @@ productsContainer.addEventListener("keydown", (event) => {
     return;
   }
 
+  const descriptionButton = event.target.closest(".product-description-btn");
+  if (descriptionButton) {
+    event.preventDefault();
+    const productId = Number(descriptionButton.dataset.descriptionId);
+    openDescriptionModal(productId);
+    return;
+  }
+
   const card = event.target.closest(".product-card");
   if (!card) {
     return;
@@ -387,6 +444,23 @@ productsContainer.addEventListener("keydown", (event) => {
   event.preventDefault();
   const productId = Number(card.dataset.productId);
   toggleProductSelection(productId);
+});
+
+/* Allow closing the description modal from the backdrop or close button */
+descriptionModal?.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-modal]")) {
+    closeDescriptionModal();
+  }
+});
+
+/* Close the modal with Escape */
+document.addEventListener("keydown", (event) => {
+  if (
+    event.key === "Escape" &&
+    descriptionModal?.classList.contains("is-open")
+  ) {
+    closeDescriptionModal();
+  }
 });
 
 /* Remove one item directly from the selected products list */
